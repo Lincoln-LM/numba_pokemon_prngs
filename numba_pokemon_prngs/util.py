@@ -43,3 +43,29 @@ def rotate_right_u64(val: np.uint64, count: np.uint8) -> np.uint64:
     val = np.uint64(val)
     count = np.uint8(count)
     return np.uint64((val << (np.uint8(64) - count)) | (val >> count))
+
+
+NATURE_MODIFIERS = np.ones((25, 5), np.float32)
+for i in range(25):
+    NATURE_MODIFIERS[i][i % 5] -= 0.1
+    NATURE_MODIFIERS[i][i // 5] += 0.1
+
+
+@optional_njit(return_type(np.uint16, (np.uint16, np.uint8, np.uint8)))
+def compute_stat(stat: np.uint16, nature: np.uint8, index: np.int8):
+    """Compute stat after nature modifier"""
+    return np.uint16(np.float32(stat) * NATURE_MODIFIERS[nature][index - 1])
+
+
+HEX_LOOKUP = np.array([f"{i:02X}" for i in range(256)], dtype=np.str0)
+
+
+@optional_njit(return_type(np.str0, (np.uint32,)))
+def hex_32(num: np.uint32) -> np.str0:
+    """Display 32-bit number as a 0 padded hex string"""
+    return (
+        HEX_LOOKUP[num >> 24]
+        + HEX_LOOKUP[(num >> 16) & 0xFF]
+        + HEX_LOOKUP[(num >> 8) & 0xFF]
+        + HEX_LOOKUP[num & 0xFF]
+    )

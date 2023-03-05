@@ -8,6 +8,33 @@ if USE_NUMBA:
     import numba
     from numba.core.imputils import lower_builtin
     from numba.core.typing.templates import AbstractTemplate, signature, infer_global
+    from numba.types import string as numba_string
+
+    # pylint: disable=unused-import,no-name-in-module
+    from numba.typed import List as TypedList
+    from numba.types import ListType as TypedListType
+
+    # pylint: enable=unused-import,no-name-in-module
+
+    def convert_to_numba(input_type):
+        """Convert to numba type"""
+        return (
+            input_type
+            if isinstance(input_type, numba.types.Type)
+            else (
+                numba.void
+                if input_type == np.void0
+                else (
+                    numba_string
+                    if input_type == np.str0
+                    else (
+                        input_type.class_type.instance_type
+                        if hasattr(input_type, "class_type")
+                        else numba.from_dtype(input_type)
+                    )
+                )
+            )
+        )
 
     def optional_ir_function(function, sig):
         """Optional custom IR function to be used in place of `function`"""
@@ -34,39 +61,34 @@ if USE_NUMBA:
 
     def return_type(output_type, input_types):
         """Function that takes inputs and returns the return type based on the output type"""
-        output_type = (
-            output_type
-            if isinstance(output_type, numba.types.Type)
-            else (
-                numba.void if output_type == np.void0 else numba.from_dtype(output_type)
-            )
-        )
+        if not hasattr(input_types, "__iter__"):
+            raise TypeError(f"{input_types} is not a iter of inputs")
+        output_type = convert_to_numba(output_type)
         return output_type(
-            *(
-                input_type
-                if isinstance(input_type, numba.types.Type)
-                else numba.from_dtype(input_type)
-                for input_type in input_types
-            )
+            *(convert_to_numba(input_type) for input_type in input_types)
         )
 
     def convert_spec(spec):
         """Convert a spec containing numpy types to use numba types"""
         for attr, py_type in spec.copy().items():
-            if not isinstance(py_type, numba.types.Type):
-                spec[attr] = numba.from_dtype(py_type)
+            spec[attr] = convert_to_numba(py_type)
         return spec
 
     def convert_spec_cls(spec, cls):
         """Convert a spec built from type hints containing numpy types to use numba types"""
         spec = spec or {}
         for attr, py_type in get_type_hints(cls).items():
-            if attr not in spec and not isinstance(py_type, numba.types.Type):
-                spec[attr] = numba.from_dtype(py_type)
+            spec[attr] = convert_to_numba(py_type)
         return spec
 
 else:
     # pylint disable=unused-argument
+    TypedList = list
+    TypedListType = list
+
+    def convert_to_numba(input_type):
+        """Convert to numba type"""
+        return input_type
 
     def optional_ir_function(function, sig):
         """Optional custom IR function to be used in place of `function`"""
@@ -128,7 +150,7 @@ def optional_njit(signature_or_function=None, locals=None, **options):
         return numba.njit(
             signature_or_function=signature_or_function,
             locals=convert_spec(locals),
-            **options
+            **options,
         )
 
     # TODO: support @optional_njit w/o arguments provided
