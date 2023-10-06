@@ -551,6 +551,18 @@ docs = ["furo (>=2022.12.7)", "sphinx (>=5.3)", "sphinx-autodoc-typehints (>=1.1
 testing = ["covdefaults (>=2.2.2)", "coverage (>=7.0.1)", "pytest (>=7.2)", "pytest-cov (>=4)", "pytest-timeout (>=2.1)"]
 
 [[package]]
+name = "flatbuffers"
+version = "23.3.3"
+description = "The FlatBuffers serialization format for Python"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "flatbuffers-23.3.3-py2.py3-none-any.whl", hash = "sha256:5ad36d376240090757e8f0a2cfaf6abcc81c6536c0dc988060375fd0899121f8"},
+    {file = "flatbuffers-23.3.3.tar.gz", hash = "sha256:cabd87c4882f37840f6081f094b2c5bc28cefc2a6357732746936d055ab45c3d"},
+]
+
+[[package]]
 name = "html5lib"
 version = "1.1"
 description = "HTML parser based on the WHATWG HTML specification"
@@ -1851,4 +1863,4 @@ numba = ["numba"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.7.2, < 3.11"
-content-hash = "11990de0e1dcd766cc6d2572b7fe2be363117e7f1242a02884e704c76d42b7df"
+content-hash = "c8d4ce7d881055cd08373e86e8f7e0949aa6c726a90b946806b5f29a531fac1c"

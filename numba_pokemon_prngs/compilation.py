@@ -12,6 +12,7 @@ if USE_NUMBA:
 
     # pylint: disable=unused-import,no-name-in-module
     from numba.typed import List as TypedList
+    from numba.typed import Dict as TypedDict_
     from numba.types import ListType as TypedListType
 
     # pylint: enable=unused-import,no-name-in-module
@@ -35,6 +36,14 @@ if USE_NUMBA:
                 )
             )
         )
+
+    def typed_dict_constructor(key_type, value_type):
+        """Construct TypedDict"""
+        return TypedDict_.empty(
+            key_type=convert_to_numba(key_type), value_type=convert_to_numba(value_type)
+        )
+
+    TypedDict = typed_dict_constructor
 
     def optional_ir_function(function, sig):
         """Optional custom IR function to be used in place of `function`"""
@@ -83,8 +92,13 @@ if USE_NUMBA:
 
 else:
     # pylint disable=unused-argument
+    def typed_dict_constructor(key_type, value_type):
+        """Construct TypedDict"""
+        return {}
+
     TypedList = list
     TypedListType = list
+    TypedDict = typed_dict_constructor
 
     def convert_to_numba(input_type):
         """Convert to numba type"""
